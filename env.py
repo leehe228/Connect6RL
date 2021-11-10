@@ -5,11 +5,11 @@ import numpy as np
 class Connect6Env():
     def __init__(self):
         # pygame
-        pg.init()
-        self.screen = pg.display.set_mode([500, 500])
-        pg.display.set_caption("Connect6 Reinforcement Learning")
-        self.clock = pg.time.Clock()
-        self.clock.tick(10)
+        # pg.init()
+        # self.screen = pg.display.set_mode([500, 500])
+        # pg.display.set_caption("Connect6 Reinforcement Learning")
+        # self.clock = pg.time.Clock()
+        # self.clock.tick(10)
 
         # state
         self.state = np.zeros((19, 19), dtype=np.int)
@@ -52,5 +52,6 @@ class Connect6Env():
 
 
     def update(self):
-        pass
+        for k in self.state:
+            print(*k)
 
