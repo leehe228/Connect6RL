@@ -27,7 +27,7 @@ start_train_episode = 1000
 
 target_update_step = 250
 print_interval = 1
-save_interval = 5000
+save_interval = 100001
 
 epsilon_init = 0.95
 epsilon_min = 0.05
@@ -104,9 +104,9 @@ class DQNAgent():
 
     def append_sample(self, data, turn : int):
         if turn == 0:
-            self.memory1.append((data[0], data[1], data[2], data[3], data[4]))
+            self.memory1.append(([data[0]], data[1], data[2], [data[3]], data[4]))
         else:
-            self.memory2.append((data[0], data[1], data[2], data[3], data[4]))
+            self.memory2.append(([data[0]], data[1], data[2], [data[3]], data[4]))
 
     def save_model(self):
         self.Saver.save(self.sess, save_path + "/model/model")
