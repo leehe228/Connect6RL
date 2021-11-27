@@ -61,11 +61,8 @@ class Connect6Env():
 
 class Connect6EnvAdversarial():
     def __init__(self) -> None:
-        # state
         self.state = {0 : np.zeros((19, 19), dtype=np.int), 1 : np.zeros((19, 19), dtype=np.int)}
-
-        # reward dictionary
-        self.reward_dict = {"victory" : 10.0, "defeat" : -10.0, "step" : 0.0001, "overlap" : -0.1}
+        self.reward_dict = {"victory" : 10.0, "defeat" : -10.0, "step" : 0.00001, "overlap" : -0.1}
 
 
     def reset(self):
@@ -73,12 +70,53 @@ class Connect6EnvAdversarial():
         return obs
 
     
-    def finish_check(self, turn : int) -> bool:
-        if (turn == 0):
-            pass
+    def finish_check(self) -> bool:
+        for i in range(0, 19):
+            for j in range(0, 19):
+                for k in [1, -1]:
+                    try: 
+                        if (k == self.state[0][i, j] == self.state[0][i + 1, j] == self.state[0][i + 2, j] == self.state[0][i + 3, j] == self.state[0][i + 4, j] == self.state[0][i + 5, j]):
+                            return k
+                    except: pass
 
-        else:
-            pass
+        for j in range(0, 19):
+            for i in range(0, 19):
+                for k in [1, -1]:
+                    try: 
+                        if (k == self.state[0][i, j] == self.state[0][i, j + 1] == self.state[0][i, j + 2] == self.state[0][i, j + 3] == self.state[0][i, j + 4] == self.state[0][i, j + 5]):
+                            return k
+                    except: pass
+
+        for i in range(0, 19):
+            for j in range(0, 19):
+                for k in [1, -1]:
+                    try: 
+                        if (k == self.state[0][i, j] == self.state[0][i + 1, j + 1] == self.state[0][i + 2, j + 2] == self.state[0][i + 3, j + 3] == self.state[0][i + 4, j + 4] == self.state[0][i + 5, j + 5]):
+                            return k
+                    except: pass
+
+        for i in range(0, 19):
+            for j in range(0, 19):
+                for k in [1, -1]:
+                    try: 
+                        if (k == self.state[0][i, j] == self.state[0][i - 1, j + 1] == self.state[0][i - 2, j + 2] == self.stat[0][i - 3, j + 3] == self.state[0][i - 4, j + 4] == self.state[0][i - 5, j + 5]):
+                            return k
+                    except: pass
+
+        return 0
+
+
+    def get_state(self, turn : int):
+        return self.state[turn]
+
+    
+    def put_check(self, action : int, turn : int):
+        idx = (action // 19, action % 19)
+
+        if self.state[turn][idx] != 0.0:
+            return False
+
+        return True
 
 
     def step(self, action : int, turn : int) -> tuple(np.ndarray, float, bool, dict):
@@ -104,11 +142,16 @@ class Connect6EnvAdversarial():
                 reward = self.reward_dict["overlap"]
                 info = {"pass":False}
 
-        next_obs = self.state[turn]
+        next_obs = self.get_state(turn)
 
-        if self.finish_check(turn):
+        w = self.finish_check()
+
+        if w != 0:
             done = True
-            reward += self.reward_dict["victory"]
+            if (w == 1 and turn == 0) or (w == -1 and turn == 1):
+                reward += self.reward_dict["victory"]
+            else:
+                reward += self.reward_dict["defeat"]
         else:
             done = False
 
