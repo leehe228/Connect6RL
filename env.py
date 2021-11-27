@@ -66,6 +66,7 @@ class Connect6EnvAdversarial():
 
 
     def reset(self):
+        self.state = {0 : np.zeros((19, 19), dtype=np.int), 1 : np.zeros((19, 19), dtype=np.int)}
         obs = self.state[0]
         return obs
 
@@ -127,20 +128,20 @@ class Connect6EnvAdversarial():
                 self.state[0][idx] = 1.0
                 self.state[1][idx] = -1.0
                 reward = self.reward_dict["step"]
-                info = {"pass":True}
+                info = {"pass" : True}
             else:
                 reward = self.reward_dict["overlap"]
-                info = {"pass":False}
+                info = {"pass" : False}
 
         else:
             if self.state[1][idx] == 0.0:
                 self.state[1][idx] = 1.0
                 self.state[0][idx] = -1.0
                 reward = self.reward_dict["step"]
-                info = {"pass":True}
+                info = {"pass" : True}
             else:
                 reward = self.reward_dict["overlap"]
-                info = {"pass":False}
+                info = {"pass" : False}
 
         next_obs = self.get_state(turn)
 

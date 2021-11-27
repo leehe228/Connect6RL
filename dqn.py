@@ -34,12 +34,12 @@ epsilon_min = 0.05
 
 date_time = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
 
-save_path = "../saved_models/"+ date_time + "_DQN"
-load_path = "../saved_models/"
+save_path = "./saved_models/"+ date_time + "_DQN"
+load_path = "./saved_models/"
 
 class Model():
     def __init__(self, model_name):
-        self.input = tf.placeholder(shape=[None, state_size[0], state_size[1]], dtype=tf.float32)
+        self.input = tf.placeholder(shape=[None, 1, state_size[0], state_size[1]], dtype=tf.float32)
 
         with tf.variable_scope(name_or_scope=model_name):
             self.conv1 = tf.layers.conv2d(inputs=self.input, filters=32, 
@@ -56,8 +56,7 @@ class Model():
 
             self.fc1 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
             self.fc2 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
-            self.fc3 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
-            self.Q_Out = tf.layers.dense(self.fc3, action_size, activation=None)
+            self.Q_Out = tf.layers.dense(self.fc2, action_size, activation=None)
         self.predict = tf.argmax(self.Q_Out, 1)
 
         self.target_Q = tf.placeholder(shape=[None, action_size], dtype=tf.float32)
@@ -95,10 +94,12 @@ class DQNAgent():
             return random_action
         else:
             if turn == 0:
-                predict1 = self.sess.run(self.model1.predict, feed_dict={self.model1.input: [state]})
+                #print("start get action")
+                predict1 = self.sess.run(self.model1.predict, feed_dict={self.model1.input: [[state]]})
+                #print("end get action")
                 return np.asscalar(predict1)
             else:
-                predict2 = self.sess.run(self.model2.predict, feed_dict={self.model2.input: [state]})
+                predict2 = self.sess.run(self.model2.predict, feed_dict={self.model2.input: [[state]]})
                 return np.asscalar(predict2)
 
     def append_sample(self, data, turn : int):
@@ -194,7 +195,9 @@ if __name__ == '__main__':
 
         first_turn = True
         
-        for step in range(0, max_step * 2, 2):
+        for step in range(0, max_step * 2):
+
+            print(f"step : {step // 2} / turn : {step % 2}", end='\r')
 
             turn = step % 2
             puts = 0
@@ -205,6 +208,8 @@ if __name__ == '__main__':
                 while True:
                     action = agent.get_action(states[turn], turn)
                     next_state, reward, done, info = env.step(action, turn)
+
+                    # print(next_state, reward, done, info)
 
                     episode_rewards[turn] += reward
                     dones[turn] = done
@@ -239,13 +244,17 @@ if __name__ == '__main__':
                 if (first_turn): 
                     first_turn = False
                     break
-                elif puts == 2:
+                if puts == 2:
                     break
+
+            if dones[0] or dones[1]:
+                break
 
         rewards[0].append(episode_rewards[0])
         rewards[1].append(episode_rewards[1])
 
         if episode % print_interval == 0 and episode != 0:
+            print()
             print("step: {} / episode: {} / epsilon: {:.3f}".format(step, episode, agent.epsilon))
             print("reward1: {:.2f} / loss1: {:.4f} / reward2: {:.2f} / loss2: {:.4f}".format(
                   np.mean(rewards[0]), np.mean(losses[0]), np.mean(rewards[1]), np.mean(losses[1])))
