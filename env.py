@@ -119,7 +119,7 @@ class Connect6EnvAdversarial():
         return True
 
 
-    def step(self, action : int, turn : int) -> tuple(np.ndarray, float, bool, dict):
+    def step(self, action : int, turn : int):
         idx = (action // 19, action % 19)
 
         if (turn == 0):
