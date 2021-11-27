@@ -42,7 +42,7 @@ class Model():
         self.input = tf.placeholder(shape=[None, state_size[0], state_size[1]], dtype=tf.float32)
 
         with tf.variable_scope(name_or_scope=model_name):
-            self.conv1 = tf.layers.conv2d(inputs=self.input_normalize, filters=32, 
+            self.conv1 = tf.layers.conv2d(inputs=self.input, filters=32, 
                                           activation=tf.nn.relu, kernel_size=[12, 12], 
                                           strides=[4,4], padding="SAME")
             self.conv2 = tf.layers.conv2d(inputs=self.conv1, filters=64, 
@@ -89,16 +89,16 @@ class DQNAgent():
         if load_model == True:
             self.Saver.restore(self.sess, load_path)
 
-    def get_action(self, state1, state2, turn : int):
+    def get_action(self, state, turn : int):
         if self.epsilon > np.random.rand():
             random_action = np.random.randint(0, action_size)
             return random_action
         else:
             if turn == 0:
-                predict1 = self.sess.run(self.model1.predict, feed_dict={self.model1.input: [state1]})
+                predict1 = self.sess.run(self.model1.predict, feed_dict={self.model1.input: [state]})
                 return np.asscalar(predict1)
             else:
-                predict2 = self.sess.run(self.model2.predict, feed_dict={self.model2.input: [state2]})
+                predict2 = self.sess.run(self.model2.predict, feed_dict={self.model2.input: [state]})
                 return np.asscalar(predict2)
 
     def append_sample(self, data, turn : int):
@@ -188,7 +188,7 @@ if __name__ == '__main__':
         
         init_state = env.reset()
         states = {0 : init_state, 1 : init_state}
-        dones = False
+        dones = {0 : False, 1 : False}
 
         episode_rewards = {0 : 0.0, 1 : 0.0}
 
@@ -209,11 +209,9 @@ if __name__ == '__main__':
                     episode_rewards[turn] += reward
                     dones[turn] = done
 
-                    done = dones[0] or dones[1]
-
                     if train_mode:
                         data = [states[turn], action, reward, next_state, done]
-                        agent.append_sample(data)
+                        agent.append_sample(data, turn)
                     else:
                         agent.epsilon = 0.0
 
