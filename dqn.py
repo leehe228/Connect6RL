@@ -15,7 +15,7 @@ train_mode = True
 
 batch_size = 128
 mem_maxlen = 50000
-discount_factor = 0.99
+discount_factor = 1.0
 learning_rate = 0.0002
 
 run_episode = 100000
@@ -27,7 +27,7 @@ start_train_episode = 1000
 
 target_update_step = 30
 print_interval = 1
-save_interval = 100001
+save_interval = 100
 
 epsilon_init = 0.95
 epsilon_min = 0.05
@@ -158,7 +158,7 @@ class DQNAgent():
         
         tf.summary.scalar("end_step", self.summary_end_step)
         tf.summary.scalar("mean_rewards", self.summary_mean_rewards)
-        tf.summary.scaler("max_rewards", self.summary_max_rewards)
+        tf.summary.scalar("max_rewards", self.summary_max_rewards)
         tf.summary.scalar("loss1", self.summary_loss1)
         tf.summary.scalar("reward1", self.summary_reward1)
         tf.summary.scalar("loss2", self.summary_loss2)
