@@ -152,11 +152,13 @@ class DQNAgent():
             self.sess.run(target_model.trainable_var[i].assign(model.trainable_var[i]))
 
     def Make_Summary(self):
+        self.summary_rewards = tf.placeholder(dtype=tf.float32)
         self.summary_loss1 = tf.placeholder(dtype=tf.float32)
         self.summary_reward1 = tf.placeholder(dtype=tf.float32)
         self.summary_loss2 = tf.placeholder(dtype=tf.float32)
         self.summary_reward2 = tf.placeholder(dtype=tf.float32)
         
+        tf.summary.scalar("rewards", self.summary_rewards)
         tf.summary.scalar("loss1", self.summary_loss1)
         tf.summary.scalar("reward1", self.summary_reward1)
         tf.summary.scalar("loss2", self.summary_loss2)
@@ -167,9 +169,10 @@ class DQNAgent():
 
         return Summary, Merge
         
-    def Write_Summray(self, reward1, loss1, reward2, loss2, episode):
+    def Write_Summray(self, rewards, reward1, loss1, reward2, loss2, episode):
         self.Summary.add_summary(
-            self.sess.run(self.Merge, feed_dict={self.summary_loss1: loss1, 
+                self.sess.run(self.Merge, feed_dict={self.summary_rewards: rewards,
+                                                 self.summary_loss1: loss1, 
                                                  self.summary_reward1: reward1, 
                                                  self.summary_loss2: loss2, 
                                                  self.summary_reward2: reward2}), episode)
@@ -256,11 +259,11 @@ if __name__ == '__main__':
         if episode % print_interval == 0 and episode != 0:
             print()
             print("step: {} / episode: {} / epsilon: {:.3f}".format(step, episode, agent.epsilon))
-            print("reward1: {:.2f} / loss1: {:.4f} / reward2: {:.2f} / loss2: {:.4f}".format(
-                  np.mean(rewards[0]), np.mean(losses[0]), np.mean(rewards[1]), np.mean(losses[1])))
+            print("reward: {:.2f} / reward1: {:.2f} / loss1: {:.4f} / reward2: {:.2f} / loss2: {:.4f}".format(
+                  np.mean(rewards[0]) + np.mean(rewards[1]), np.mean(rewards[0]), np.mean(losses[0]), np.mean(rewards[1]), np.mean(losses[1])))
             print('------------------------------------------------------------')
             
-            agent.Write_Summray(np.mean(rewards[0]), np.mean(losses[0]), 
+            agent.Write_Summray(np.mean(rewards[0]) + np.mean(rewards[1]), np.mean(rewards[0]), np.mean(losses[0]), 
                                 np.mean(rewards[1]), np.mean(losses[1]), episode)
 
             rewards = {0 : [], 1 : []}
