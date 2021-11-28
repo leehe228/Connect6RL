@@ -21,11 +21,11 @@ learning_rate = 0.0002
 run_episode = 100000
 test_episode = 100
 
-max_step = 1000
+max_step = 181
 
 start_train_episode = 1000
 
-target_update_step = 250
+target_update_step = 30
 print_interval = 1
 save_interval = 100001
 
@@ -42,21 +42,19 @@ class Model():
         self.input = tf.placeholder(shape=[None, 1, state_size[0], state_size[1]], dtype=tf.float32)
 
         with tf.variable_scope(name_or_scope=model_name):
-            self.conv1 = tf.layers.conv2d(inputs=self.input, filters=32, 
-                                          activation=tf.nn.relu, kernel_size=[12, 12], 
-                                          strides=[4,4], padding="SAME")
-            self.conv2 = tf.layers.conv2d(inputs=self.conv1, filters=64, 
-                                          activation=tf.nn.relu, kernel_size=[6, 6],
-                                          strides=[3,3],padding="SAME")
-            self.conv3 = tf.layers.conv2d(inputs=self.conv2, filters=64, 
-                                          activation=tf.nn.relu, kernel_size=[3, 3],
-                                          strides=[1,1],padding="SAME")
+            self.conv1 = tf.layers.conv2d(self.input, 64, [6, 6], padding='SAME', activation=tf.nn.relu)
+            self.pool1 = tf.layers.max_pooling2d(self.conv1, [6, 6], [1, 1], padding='SAME')
+            self.conv2 = tf.layers.conv2d(self.pool1, 64, [6, 6], padding='SAME', activation=tf.nn.relu)
+            self.pool2 = tf.layers.max_pooling2d(self.conv2, [4, 4], [1, 1], padding='SAME')
+            self.conv3 = tf.layers.conv2d(self.pool2, 64, [6, 6], padding='SAME', activation=tf.nn.relu)
+            self.pool3 = tf.layers.max_pooling2d(self.conv3, [4, 4], [1, 1], padding='SAME')
  
-            self.flat = tf.layers.flatten(self.conv3)
+            self.flat = tf.layers.flatten(self.pool3)
 
             self.fc1 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
             self.fc2 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
             self.Q_Out = tf.layers.dense(self.fc2, action_size, activation=None)
+
         self.predict = tf.argmax(self.Q_Out, 1)
 
         self.target_Q = tf.placeholder(shape=[None, action_size], dtype=tf.float32)
@@ -94,9 +92,7 @@ class DQNAgent():
             return random_action
         else:
             if turn == 0:
-                #print("start get action")
                 predict1 = self.sess.run(self.model1.predict, feed_dict={self.model1.input: [[state]]})
-                #print("end get action")
                 return np.asscalar(predict1)
             else:
                 predict2 = self.sess.run(self.model2.predict, feed_dict={self.model2.input: [[state]]})
@@ -152,13 +148,17 @@ class DQNAgent():
             self.sess.run(target_model.trainable_var[i].assign(model.trainable_var[i]))
 
     def Make_Summary(self):
-        self.summary_rewards = tf.placeholder(dtype=tf.float32)
+        self.summary_end_step = tf.placeholder(dtype = tf.float32)
+        self.summary_mean_rewards = tf.placeholder(dtype=tf.float32)
+        self.summary_max_rewards = tf.placeholder(dtype=tf.float32)
         self.summary_loss1 = tf.placeholder(dtype=tf.float32)
         self.summary_reward1 = tf.placeholder(dtype=tf.float32)
         self.summary_loss2 = tf.placeholder(dtype=tf.float32)
         self.summary_reward2 = tf.placeholder(dtype=tf.float32)
         
-        tf.summary.scalar("rewards", self.summary_rewards)
+        tf.summary.scalar("end_step", self.summary_end_step)
+        tf.summary.scalar("mean_rewards", self.summary_mean_rewards)
+        tf.summary.scaler("max_rewards", self.summary_max_rewards)
         tf.summary.scalar("loss1", self.summary_loss1)
         tf.summary.scalar("reward1", self.summary_reward1)
         tf.summary.scalar("loss2", self.summary_loss2)
@@ -169,13 +169,15 @@ class DQNAgent():
 
         return Summary, Merge
         
-    def Write_Summray(self, rewards, reward1, loss1, reward2, loss2, episode):
+    def Write_Summray(self, end_step, rewards, max_reward, reward1, loss1, reward2, loss2, episode):
         self.Summary.add_summary(
-                self.sess.run(self.Merge, feed_dict={self.summary_rewards: rewards,
-                                                 self.summary_loss1: loss1, 
-                                                 self.summary_reward1: reward1, 
-                                                 self.summary_loss2: loss2, 
-                                                 self.summary_reward2: reward2}), episode)
+                self.sess.run(self.Merge, feed_dict={self.summary_end_step: end_step,
+                                                self.summary_mean_rewards: rewards,
+                                                self.summary_max_rewards: max_reward,
+                                                self.summary_loss1: loss1, 
+                                                self.summary_reward1: reward1, 
+                                                self.summary_loss2: loss2, 
+                                                self.summary_reward2: reward2}), episode)
 
 
 if __name__ == '__main__':
@@ -185,6 +187,8 @@ if __name__ == '__main__':
 
     rewards = {0 : [], 1 : []}
     losses = {0 : [], 1 : []}
+
+    end_step = []
 
     for episode in range(run_episode + test_episode):
         if episode == run_episode:
@@ -200,7 +204,7 @@ if __name__ == '__main__':
         
         for step in range(0, max_step * 2):
 
-            print(f"step : {step // 2} / turn : {step % 2}", end='\r')
+            print(f"episode : {episode}, step : {step // 2}", end='\r')
 
             turn = step % 2
             puts = 0
@@ -223,7 +227,7 @@ if __name__ == '__main__':
                     else:
                         agent.epsilon = 0.0
 
-                    if info['pass']: break
+                    if info['pass'] or done: break
 
                 # 상태 정보 업데이트 
                 states[turn] = next_state
@@ -231,10 +235,10 @@ if __name__ == '__main__':
                 if episode > start_train_episode and train_mode:
                     # train behavior networks
                     if turn == 0:
-                        loss1 = agent.train_model(agent.model1, agent.target_model1, agent.memory1, done)
+                        loss1 = agent.train_model(agent.model1, agent.target_model1, agent.memory1, dones[0])
                         losses[0].append(loss1)
                     else:
-                        loss2 = agent.train_model(agent.model2, agent.target_model2, agent.memory2, done)
+                        loss2 = agent.train_model(agent.model2, agent.target_model2, agent.memory2, dones[1])
                         losses[1].append(loss2)
 
                     # update target networks
@@ -249,9 +253,13 @@ if __name__ == '__main__':
                     break
                 if puts == 2:
                     break
+                if done:
+                    break
 
             if dones[0] or dones[1]:
                 break
+
+        end_step.append(step)
 
         rewards[0].append(episode_rewards[0])
         rewards[1].append(episode_rewards[1])
@@ -263,7 +271,7 @@ if __name__ == '__main__':
                   np.mean(rewards[0]) + np.mean(rewards[1]), np.mean(rewards[0]), np.mean(losses[0]), np.mean(rewards[1]), np.mean(losses[1])))
             print('------------------------------------------------------------')
             
-            agent.Write_Summray(np.mean(rewards[0]) + np.mean(rewards[1]), np.mean(rewards[0]), np.mean(losses[0]), 
+            agent.Write_Summray(np.mean(end_step), np.mean(rewards[0]) + np.mean(rewards[1]), max(max(rewards[0]), max(rewards[1])), np.mean(rewards[0]), np.mean(losses[0]), 
                                 np.mean(rewards[1]), np.mean(losses[1]), episode)
 
             rewards = {0 : [], 1 : []}
