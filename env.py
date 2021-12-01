@@ -50,6 +50,83 @@ class Connect6EnvAdversarial():
         return 0
 
 
+    def heuristic(self, turn : int, layer : int=0):
+        """
+        returns heuristic information about states
+        turn : turn of agnet (0 or 1)
+        layer : positive layer only (1), negative layer only (-1), both (0)
+        """
+        hlayer1 = np.zeros((19, 19), dtype=np.int)
+        hlayer2 = np.zeros((19, 19), dtype=np.int)
+
+        for i in range(0, 19):
+            for j in range(0, 19):
+                # init
+                hlayer1[i, j] = 0
+                hlayer2[i, j] = 0
+
+                # left to right
+                count1 = 0
+                count2 = 0
+                for k in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
+                    try: 
+                        if (1 == self.state[turn][i + k, j]): count1 += 1 
+                    except: pass
+                    try: 
+                        if (-1 == self.state[turn][i + k, j]) : count2 += 1 
+                    except: pass
+
+                hlayer1[i, j] += count1
+                hlayer2[i, j] += count2
+
+                # up to down
+                count1 = 0
+                count2 = 0
+                for k in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
+                    try: 
+                        if (1 == self.state[turn][i, j + k]): count1 += 1 
+                    except: pass
+                    try: 
+                        if (-1 == self.state[turn][i, j + k]) : count2 += 1 
+                    except: pass
+
+                hlayer1[i, j] += count1
+                hlayer2[i, j] += count2
+
+                # diag upper left to bottom right \
+                count1 = 0
+                count2 = 0
+                for k in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
+                    try: 
+                        if (1 == self.state[turn][i + k, j - k]): count1 += 1
+                    except: pass
+                    try: 
+                        if (-1 == self.state[turn][i + k, j - k]) : count2 += 1 
+                    except: pass
+
+                hlayer1[i, j] += count1
+                hlayer2[i, j] += count2
+
+
+                # diag upper right to bottom left /
+                count1 = 0
+                count2 = 0
+                for k in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
+                    try: 
+                        if (1 == self.state[turn][i - k, j + k]): count1 += 1
+                    except: pass
+                    try: 
+                        if (-1 == self.state[turn][i - k, j + k]) : count2 += 1 
+                    except: pass
+
+                hlayer1[i, j] += count1
+                hlayer2[i, j] += count2
+
+        if layer == 1: return hlayer1
+        elif layer == -1: return hlayer2
+        else: return hlayer1, hlayer2
+
+
     def get_state(self, turn : int):
         return self.state[turn]
 
