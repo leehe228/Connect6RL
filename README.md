@@ -29,9 +29,9 @@ by [lminjung99](https://github.com/lminjung99), [leehe228](https://github.com/le
 
 **MDP of the Connect6 Environment**
 
-$$<S, A, P, R, \gamma>$$
+$$[<S, A, P, R, \gamma>]$$
 
-$S$ : $19 \times 19$ 테이블 위 각 칸은 비어있거나 검은 돌이 놓여있거나 흰 돌이 놓여있다. 그러므로 state의 개수는 $C^3_1 \times 19\times 19=1083$개이다.
+$$[S]$$ : $19 \times 19$ 테이블 위 각 칸은 비어있거나 검은 돌이 놓여있거나 흰 돌이 놓여있다. 그러므로 state의 개수는 $C^3_1 \times 19\times 19=1083$개이다.
 
 $A$ : 총 $361$개의 칸 위에 돌을 놓는 것이 action이므로, 총 361개의 descrete한 action
 
@@ -80,17 +80,17 @@ $\gamma \in [0.05, 0.95]$ : discount factor
 
 **현재 구현된 Architecture (2 agents, adversarial)**
 
-![](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/77010ee1-6afc-411a-919b-22ba25b7e291/Untitled.png)
+![](https://user-images.githubusercontent.com/37548919/145352652-94dcc2b4-c434-4015-89e3-25ba51948158.png)
 
 **변경 예정인 Architecture (1 agent)**
 
 학습 능률을 증가시키고, reward를 통해 학습 추이를 추정할 수 있도록 하기 위함
 
-![](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/323d8775-c645-40ce-85d5-fa482f164a29/Untitled.png)
+![](https://user-images.githubusercontent.com/37548919/145352786-e193bd79-d084-4222-b92c-3d64b959794a.png)
 
 **Architecture of Q Network**
 
-![](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/f596c809-533c-45b9-8f24-3233805b66a7/Untitled.png)
+![](https://user-images.githubusercontent.com/37548919/145352800-55e33d10-722a-4740-b5e0-2dcd3c9910e0.png)
 
 → CNN Layers
 
