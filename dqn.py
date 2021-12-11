@@ -7,27 +7,27 @@ import tensorflow as tf
 from collections import deque
 from env import Connect6EnvAdversarial
 
-state_size = [19, 19]
-action_size = 361
+state_size = [10, 10]
+action_size = 10 * 10
 
 load_model = False
 train_mode = True
 
-batch_size = 128
+batch_size = 64
 mem_maxlen = 50000
 discount_factor = 1.0
 learning_rate = 0.0002
 
-run_episode = 100000
+run_episode = 30000
 test_episode = 100
 
-max_step = 181
+max_step = 101
 
 start_train_episode = 1000
 
-target_update_step = 30
+target_update_step = 25
 print_interval = 1
-save_interval = 100
+save_interval = 500
 
 epsilon_init = 0.95
 epsilon_min = 0.05
@@ -42,18 +42,18 @@ class Model():
         self.input = tf.placeholder(shape=[None, 1, state_size[0], state_size[1]], dtype=tf.float32)
 
         with tf.variable_scope(name_or_scope=model_name):
-            self.conv1 = tf.layers.conv2d(self.input, 64, [6, 6], padding='SAME', activation=tf.nn.relu)
+            self.conv1 = tf.layers.conv2d(self.input, 32, [6, 6], padding='SAME', activation=tf.nn.relu)
             self.pool1 = tf.layers.max_pooling2d(self.conv1, [6, 6], [1, 1], padding='SAME')
             self.conv2 = tf.layers.conv2d(self.pool1, 64, [6, 6], padding='SAME', activation=tf.nn.relu)
             self.pool2 = tf.layers.max_pooling2d(self.conv2, [4, 4], [1, 1], padding='SAME')
-            self.conv3 = tf.layers.conv2d(self.pool2, 64, [6, 6], padding='SAME', activation=tf.nn.relu)
-            self.pool3 = tf.layers.max_pooling2d(self.conv3, [4, 4], [1, 1], padding='SAME')
+            # self.conv3 = tf.layers.conv2d(self.pool2, 64, [6, 6], padding='SAME', activation=tf.nn.relu)
+            # self.pool3 = tf.layers.max_pooling2d(self.conv3, [4, 4], [1, 1], padding='SAME')
  
-            self.flat = tf.layers.flatten(self.pool3)
+            self.flat = tf.layers.flatten(self.pool2)
 
-            self.fc1 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
-            self.fc2 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
-            self.Q_Out = tf.layers.dense(self.fc2, action_size, activation=None)
+            self.fc1 = tf.layers.dense(self.flat, 128, activation=tf.nn.relu)
+            # self.fc2 = tf.layers.dense(self.flat, 512, activation=tf.nn.relu)
+            self.Q_Out = tf.layers.dense(self.fc1, action_size, activation=tf.nn.softmax)
 
         self.predict = tf.argmax(self.Q_Out, 1)
 
