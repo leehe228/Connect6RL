@@ -200,8 +200,8 @@ class DQNAgent():
 
 def printBoard(state):
     print('-' * 38)
-    for i in range(19):
-        for j in range(19):
+    for i in range(state_size[0]):
+        for j in range(state_size[1]):
             if state[i, j] == 1.0:
                 print("● ", end='')
             elif state[i, j] == -1.0:
