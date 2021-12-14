@@ -73,7 +73,7 @@ def mcts_go(current_game, team, iterations=MCTS_ITERATIONS, stats=False):
                 current_node = current_node.children[0]
                 #update board again
                 board_updates += 1
-                current_game.move(current_node.moves_to[-1][0], current_node.moves_to[-1][1])
+                current_game.move(current_node.moves_to[-1][0], current_node.moves_to[-1][1], team)
                 #rollout
                 rollout_res = rollout(copy.deepcopy(current_game), team)
 
