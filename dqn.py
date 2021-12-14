@@ -99,6 +99,8 @@ class DQNAgent():
         turn = -1 if turn == 0 else 1
         self.game.move(row=action // state_size[0], col=action % state_size[0], piece=turn)
 
+    def print_mcts(self):
+        print(self.game)
 
     def get_action(self, state, turn : int):
         if self.epsilon > np.random.rand():
