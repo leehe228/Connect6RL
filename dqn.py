@@ -104,7 +104,7 @@ class DQNAgent():
             # random_action = np.random.randint(0, action_size)
             # return random_action
             turn = -1 if turn == 0 else 1
-            move = mcts_go(current_game=copy.deepcopy(self.game), team=turn, sats=True)
+            move = mcts_go(current_game=copy.deepcopy(self.game), team=turn, stats=True)
             action = move[0] * state_size[0] + move[1]
             return action
         else:
@@ -202,9 +202,9 @@ def printBoard(state):
     for i in range(19):
         for j in range(19):
             if state[i, j] == 1.0:
-                print("‚óè ", end='')
+                print("?óè ", end='')
             elif state[i, j] == -1.0:
-                print("‚óã ", end='')
+                print("?óã ", end='')
             else: print("  ", end='')
         print()
     print('-' * 38)
