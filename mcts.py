@@ -49,7 +49,7 @@ def mcts_go(current_game, team, iterations=MCTS_ITERATIONS, stats=False):
 
         board_updates = 0
         for move in current_node.moves_to:
-            current_game.move(move[0], move[1])
+            current_game.move(move[0], move[1], team)
             board_updates += 1
 
         #quickly check if the game if is in a terminal state
