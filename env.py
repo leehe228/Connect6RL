@@ -1,46 +1,47 @@
 import pygame as pg
 import numpy as np
 
+state_size = 15
 
 class Connect6EnvAdversarial():
     def __init__(self) -> None:
-        self.state = {0 : np.zeros((19, 19), dtype=np.int), 1 : np.zeros((19, 19), dtype=np.int)}
+        self.state = {0 : np.zeros((state_size, state_size), dtype=np.int), 1 : np.zeros((state_size, state_size), dtype=np.int)}
         self.reward_dict = {"victory" : 10.0, "defeat" : -10.0, "step" : 0.0001, "overlap" : -0.1}
 
 
     def reset(self):
-        self.state = {0 : np.zeros((19, 19), dtype=np.int), 1 : np.zeros((19, 19), dtype=np.int)}
+        self.state = {0 : np.zeros((state_size, state_size), dtype=np.int), 1 : np.zeros((state_size, state_size), dtype=np.int)}
         obs = self.state[0]
         return obs
 
     
     def finish_check(self) -> bool:
-        for i in range(0, 19):
-            for j in range(0, 19):
+        for i in range(0, state_size):
+            for j in range(0, state_size):
                 for k in [1, -1]:
                     try: 
                         if (k == self.state[0][i, j] == self.state[0][i + 1, j] == self.state[0][i + 2, j] == self.state[0][i + 3, j] == self.state[0][i + 4, j] == self.state[0][i + 5, j]):
                             return k
                     except: pass
 
-        for j in range(0, 19):
-            for i in range(0, 19):
+        for j in range(0, state_size):
+            for i in range(0, state_size):
                 for k in [1, -1]:
                     try: 
                         if (k == self.state[0][i, j] == self.state[0][i, j + 1] == self.state[0][i, j + 2] == self.state[0][i, j + 3] == self.state[0][i, j + 4] == self.state[0][i, j + 5]):
                             return k
                     except: pass
 
-        for i in range(0, 19):
-            for j in range(0, 19):
+        for i in range(0, state_size):
+            for j in range(0, state_size):
                 for k in [1, -1]:
                     try: 
                         if (k == self.state[0][i, j] == self.state[0][i + 1, j + 1] == self.state[0][i + 2, j + 2] == self.state[0][i + 3, j + 3] == self.state[0][i + 4, j + 4] == self.state[0][i + 5, j + 5]):
                             return k
                     except: pass
 
-        for i in range(0, 19):
-            for j in range(0, 19):
+        for i in range(0, state_size):
+            for j in range(0, state_size):
                 for k in [1, -1]:
                     try: 
                         if (k == self.state[0][i, j] == self.state[0][i - 1, j + 1] == self.state[0][i - 2, j + 2] == self.stat[0][i - 3, j + 3] == self.state[0][i - 4, j + 4] == self.state[0][i - 5, j + 5]):
@@ -56,11 +57,11 @@ class Connect6EnvAdversarial():
         turn : turn of agnet (0 or 1)
         layer : positive layer only (1), negative layer only (-1), both (0)
         """
-        hlayer1 = np.zeros((19, 19), dtype=np.int)
-        hlayer2 = np.zeros((19, 19), dtype=np.int)
+        hlayer1 = np.zeros((state_size, state_size), dtype=np.int)
+        hlayer2 = np.zeros((state_size, state_size), dtype=np.int)
 
-        for i in range(0, 19):
-            for j in range(0, 19):
+        for i in range(0, state_size):
+            for j in range(0, state_size):
                 # init
                 hlayer1[i, j] = 0
                 hlayer2[i, j] = 0
@@ -132,7 +133,7 @@ class Connect6EnvAdversarial():
 
     
     def put_check(self, action : int, turn : int):
-        idx = (action // 19, action % 19)
+        idx = (action // state_size, action % state_size)
 
         if self.state[turn][idx] != 0.0:
             return False
@@ -141,7 +142,7 @@ class Connect6EnvAdversarial():
 
 
     def step(self, action : int, turn : int):
-        idx = (action // 19, action % 19)
+        idx = (action // state_size, action % state_size)
 
         if (turn == 0):
             if self.state[0][idx] == 0.0:

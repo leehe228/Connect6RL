@@ -7,8 +7,11 @@ import tensorflow as tf
 from collections import deque
 from env import Connect6EnvAdversarial
 
-state_size = [10, 10]
-action_size = 10 * 10
+from mcts import Board, mcts_go
+import copy
+
+state_size = [15, 15]
+action_size = 15 * 15
 
 load_model = False
 train_mode = True
@@ -21,7 +24,7 @@ learning_rate = 0.0002
 run_episode = 30000
 test_episode = 100
 
-max_step = 101
+max_step = 226
 
 start_train_episode = 1000
 
@@ -86,10 +89,24 @@ class DQNAgent():
         if load_model == True:
             self.Saver.restore(self.sess, load_path)
 
+        self.init_mcts()
+
+    def init_mcts(self):
+        self.game = Board(state_size[0])
+
+    def set_mcts(self, action, turn):
+        turn = -1 if turn == 0 else 1
+        self.game.move(row=action // state_size[0], col=action % state_size[0], piece=turn)
+
+
     def get_action(self, state, turn : int):
         if self.epsilon > np.random.rand():
-            random_action = np.random.randint(0, action_size)
-            return random_action
+            # random_action = np.random.randint(0, action_size)
+            # return random_action
+            turn = -1 if turn == 0 else 1
+            move = mcts_go(current_game=copy.deepcopy(self.game), team=turn, sats=True)
+            action = move[0] * state_size[0] + move[1]
+            return action
         else:
             if turn == 0:
                 predict1 = self.sess.run(self.model1.predict, feed_dict={self.model1.input: [[state]]})
@@ -110,7 +127,7 @@ class DQNAgent():
     def train_model(self, model, target_model, memory, done):
         if done:
             if self.epsilon > epsilon_min:
-                self.epsilon -= 0.5 / (run_episode - start_train_episode)
+                self.epsilon -= (0.5 / (run_episode - start_train_episode)) * 15
 
         mini_batch = random.sample(memory, batch_size)
 
@@ -227,9 +244,11 @@ if __name__ == '__main__':
                     else:
                         agent.epsilon = 0.0
 
-                    if info['pass'] or done: break
+                    if info['pass'] or done: 
+                        agent.set_mcts(action=action, turn=turn)
+                        break
 
-                # ìƒíƒœ ì •ë³´ ì—…ë°ì´íŠ¸ 
+                # ?ƒ?ƒœ ? •ë³? ?—…?°?´?Š¸ 
                 states[turn] = next_state
 
                 if episode > start_train_episode and train_mode:
@@ -277,7 +296,7 @@ if __name__ == '__main__':
             rewards = {0 : [], 1 : []}
             losses = {0 : [], 1 : []}
 
-        # ë„¤íŠ¸ì›Œí¬ ëª¨ë¸ ì €ì¥ 
+        # ?„¤?Š¸?›Œ?¬ ëª¨ë¸ ????¥ 
         if episode % save_interval == 0 and episode != 0:
             agent.save_model()
             print("Save Model {}".format(episode))

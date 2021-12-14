@@ -2,11 +2,10 @@
 import sys
 import copy
 import random
-from board import Board
-from node import Node
 import math
 import copy
 
+state_size = 15
 
 MCTS_ITERATIONS = 1000
 
@@ -113,10 +112,6 @@ def rollout(game, team):
                 break
     return 0.5 #draw
 
-if __name__ == '__main__':
-    start_game()
-
-"Board file"
 
 class Board:
     "Board"
@@ -126,7 +121,7 @@ class Board:
         self.moves = 0
         self.__board = [[0 for _ in range(size)] for _ in range(size)]
 
-    def move(self, row, col, piece=None):
+    def move(self, row, col, piece):
         "Place a piece (-1) piece should take the first turn"
         if not piece:
             piece = (self.moves % 2) * 2 - 1
@@ -135,9 +130,9 @@ class Board:
             self.__board[row][col] = piece
             self.moves += 1
         elif piece != 1 and piece != -1:
-            raise TypeError("The piece should be an integer of 0 or 1.")
+            print("The piece should be an integer of 0 or 1.")
         else:
-            raise LookupError("The coordinates on the board are already taken.")
+            print("The coordinates on the board are already taken.")
 
     def undo(self):
         "remove the last placed piece"
@@ -239,7 +234,6 @@ class Board:
 
     
 class Node:
-    "Node"
     def __init__(self, parent=None, move_to=None):
         self.parent = parent #the object
         if parent and not move_to:
@@ -254,11 +248,9 @@ class Node:
         self.children = []
 
     def is_leaf(self):
-        "Returns a boolean variable on whether the node is a leaf node"
         return not bool(self.children)
 
     def ucb1(self):
-        "Returns UCB1 score"
         try:
             return self.score / self.visits + 2 * math.sqrt(math.log(self.parent.visits)
                                                             / self.visits)
