@@ -147,39 +147,39 @@ class Board:
         "Get a piece at row, col"
         return self.__board[row][col]
 
-    def check_win(self): #cross my fingers and hope everything bloody works
+def check_win(self): #cross my fingers and hope everything bloody works
         "check if the game has reached a terminal state"
         if not self.move_history:
             return 0
         latest_move = self.move_history[-1]
         #check horizontal area of last placed piece
-        start = latest_move[1] - 5
+        start = latest_move[1] - 4
         if start < 0:
             start = 0
         diag_start_col = start #because we can
-        end = latest_move[1] + 6
+        end = latest_move[1] + 5
         if end > self.size:
             end = self.size
         diag_end_col = end #because we can
-        for start_ in range(0, end - 5):
-            result = sum(self.__board[latest_move[0]][start + start_:start + start_ + 6])
+        for start_ in range(0, end - 4):
+            result = sum(self.__board[latest_move[0]][start + start_:start + start_ + 5])
             if result == 5:
                 return 1
             if result == -5:
                 return -1
 
         #check the vertical area of the last placed piece
-        start = latest_move[0] - 5
+        start = latest_move[0] - 4
         if start < 0:
             start = 0
         diag_start_row = start #because we can
-        end = latest_move[0] + 6
+        end = latest_move[0] + 5
         if end > self.size:
             end = self.size
         diag_end_row = end #because we can
         vertical = [self.__board[x][latest_move[1]] for x in range(start, end)]
-        for start_ in range(0, end - start - 5):
-            result = sum(vertical[start_:start_ + 6])
+        for start_ in range(0, end - start - 4):
+            result = sum(vertical[start_:start_ + 5])
             if result == 5:
                 return 1
             if result == -5:
@@ -190,8 +190,8 @@ class Board:
         end = min((diag_end_row - latest_move[0], diag_end_col - latest_move[1]))
         diagonal = [self.__board[latest_move[0] + x][latest_move[1] + x]
                     for x in range(start, end)] #tuples perform better than lists
-        for start_ in range(0, end - start - 5):
-            result = sum(diagonal[start_:start_ + 6])
+        for start_ in range(0, end - start - 4):
+            result = sum(diagonal[start_:start_ + 5])
             if result == 5:
                 return 1
             if result == -5:
@@ -202,8 +202,8 @@ class Board:
         end = min((diag_end_col - latest_move[1], latest_move[0] - diag_start_row + 1))
         diagonal = [self.__board[latest_move[0] - x][latest_move[1] + x]
                     for x in range(start, end)]
-        for start_ in range(0, end - start - 5):
-            result = sum(diagonal[start_:start_ + 6])
+        for start_ in range(0, end - start - 4):
+            result = sum(diagonal[start_:start_ + 5])
             if result == 5:
                 return 1
             if result == -5:
