@@ -7,6 +7,7 @@ import tensorflow as tf
 from collections import deque
 from env import Connect6EnvAdversarial
 
+import os
 from mcts import Board, mcts_go
 import copy
 
