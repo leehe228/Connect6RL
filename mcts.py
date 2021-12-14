@@ -147,7 +147,7 @@ class Board:
         "Get a piece at row, col"
         return self.__board[row][col]
 
-def check_win(self): #cross my fingers and hope everything bloody works
+    def check_win(self): #cross my fingers and hope everything bloody works
         "check if the game has reached a terminal state"
         if not self.move_history:
             return 0
