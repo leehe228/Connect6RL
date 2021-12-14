@@ -108,7 +108,7 @@ def rollout(game, team):
             row = random.randint(0, game.size - 1)
             col = random.randint(0, game.size - 1)
             if (row, col) not in game.move_history:
-                game.move(row, col)
+                game.move(row, col, team)
                 break
     return 0.5 #draw
 
