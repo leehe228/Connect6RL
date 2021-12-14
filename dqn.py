@@ -95,6 +95,9 @@ class DQNAgent():
     def init_mcts(self):
         self.game = Board(state_size[0])
 
+    def reset_mcts(self):
+        self.game = Board(state_size[0])
+
     def set_mcts(self, action, turn):
         turn = -1 if turn == 0 else 1
         self.game.move(row=action // state_size[0], col=action % state_size[0], piece=turn)
@@ -227,6 +230,7 @@ if __name__ == '__main__':
             train_mode = False
         
         init_state = env.reset()
+        agent.reset_mcts()
         states = {0 : init_state, 1 : init_state}
         dones = {0 : False, 1 : False}
 
@@ -255,6 +259,8 @@ if __name__ == '__main__':
 
                     if turn == 0:
                         os.system('clear')
+                        agent.print_mcts()
+                        print("-" * 20)
                         printBoard(next_state)
                         print(f"epsidoe: {episode} / step : {step}\nact: ({action//19}, {action%19})\nreward: {round(reward, 4)}\ncum reward : {round(episode_rewards[0], 4)}:{round(episode_rewards[1], 4)} \ndone: {done} / info: {info}")
 
