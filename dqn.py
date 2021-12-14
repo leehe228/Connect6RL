@@ -35,9 +35,9 @@ save_interval = 500
 epsilon_init = 0.95
 epsilon_min = 0.05
 
-date_time = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
+date_time = datetime.datetime.now().strftime("%d-%H-%M")
 
-save_path = "./saved_models/"+ date_time + "_DQN"
+save_path = "./saved_models/"+ date_time + "_DQN_MCTS"
 load_path = "./saved_models/"
 
 class Model():
@@ -197,6 +197,18 @@ class DQNAgent():
                                                 self.summary_reward2: reward2}), episode)
 
 
+def printBoard(state):
+    print('-' * 38)
+    for i in range(19):
+        for j in range(19):
+            if state[i, j] == 1.0:
+                print("â— ", end='')
+            elif state[i, j] == -1.0:
+                print("â—‹ ", end='')
+            else: print("  ", end='')
+        print()
+    print('-' * 38)
+
 if __name__ == '__main__':
 
     env = Connect6EnvAdversarial()
@@ -235,6 +247,11 @@ if __name__ == '__main__':
 
                     # print(next_state, reward, done, info)
 
+                    if turn == 0:
+                        os.system('clear')
+                        printBoard(next_state)
+                        print(f"epsidoe: {episode} / step : {step}\nact: ({action//19}, {action%19})\nreward: {round(reward, 4)}\ncum reward : {round(episode_rewards[0], 4)}:{round(episode_rewards[1], 4)} \ndone: {done} / info: {info}")
+
                     episode_rewards[turn] += reward
                     dones[turn] = done
 
@@ -247,8 +264,7 @@ if __name__ == '__main__':
                     if info['pass'] or done: 
                         agent.set_mcts(action=action, turn=turn)
                         break
-
-                # ?ƒ?ƒœ ? •ë³? ?—…?°?´?Š¸ 
+ 
                 states[turn] = next_state
 
                 if episode > start_train_episode and train_mode:
@@ -296,7 +312,7 @@ if __name__ == '__main__':
             rewards = {0 : [], 1 : []}
             losses = {0 : [], 1 : []}
 
-        # ?„¤?Š¸?›Œ?¬ ëª¨ë¸ ????¥ 
+        # ?\84\A4?\8A\B8?\9B\8C?\81\AC ëª¨ë¸ ????\9E\A5 
         if episode % save_interval == 0 and episode != 0:
             agent.save_model()
             print("Save Model {}".format(episode))
