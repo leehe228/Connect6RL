@@ -180,6 +180,11 @@ class Connect6EnvAdversarial():
         return next_obs, reward, done, info
 
 
+    def seton(self, action, turn):
+        idx = (action // state_size, action % state_size)
+        self.state[turn][idx] = 1.0
+        self.state[0 if turn == 1 else 1][idx] = -1.0
+
     def update(self):
         for k in self.state:
             print(*k)

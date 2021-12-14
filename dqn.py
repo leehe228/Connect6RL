@@ -231,6 +231,9 @@ if __name__ == '__main__':
         episode_rewards = {0 : 0.0, 1 : 0.0}
 
         first_turn = True
+
+        agent.set_mcts(action=7*15+7, turn=1)
+        env.seton(action=7*15+7, turn=1)
         
         for step in range(0, max_step * 2):
 
