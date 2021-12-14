@@ -202,9 +202,9 @@ def printBoard(state):
     for i in range(19):
         for j in range(19):
             if state[i, j] == 1.0:
-                print("?— ", end='')
+                print("â— ", end='')
             elif state[i, j] == -1.0:
-                print("?—‹ ", end='')
+                print("â—‹ ", end='')
             else: print("  ", end='')
         print()
     print('-' * 38)
@@ -312,7 +312,7 @@ if __name__ == '__main__':
             rewards = {0 : [], 1 : []}
             losses = {0 : [], 1 : []}
 
-        # ?\84\A4?\8A\B8?\9B\8C?\81\AC ëª¨ë¸ ????\9E\A5 
+        # ?\84\A4?\8A\B8?\9B\8C?\81\AC ï§â‘¤ëœ½ ????\9E\A5 
         if episode % save_interval == 0 and episode != 0:
             agent.save_model()
             print("Save Model {}".format(episode))
