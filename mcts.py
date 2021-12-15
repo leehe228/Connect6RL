@@ -168,9 +168,9 @@ class Board:
         diag_end_col = end #because we can
         for start_ in range(0, end - 5):
             result = sum(self.__board[latest_move[0]][start + start_:start + start_ + 6])
-            if result == 5:
+            if result == 6:
                 return 1
-            if result == -5:
+            if result == -6:
                 return -1
 
         #check the vertical area of the last placed piece
@@ -185,9 +185,9 @@ class Board:
         vertical = [self.__board[x][latest_move[1]] for x in range(start, end)]
         for start_ in range(0, end - start - 5):
             result = sum(vertical[start_:start_ + 6])
-            if result == 5:
+            if result == 6:
                 return 1
-            if result == -5:
+            if result == -6:
                 return -1
 
         #check the top left - bottom right diagonal
@@ -197,9 +197,9 @@ class Board:
                     for x in range(start, end)] #tuples perform better than lists
         for start_ in range(0, end - start - 5):
             result = sum(diagonal[start_:start_ + 6])
-            if result == 5:
+            if result == 6:
                 return 1
-            if result == -5:
+            if result == -6:
                 return -1
 
         #check bottom left - top right diagonal
@@ -209,9 +209,9 @@ class Board:
                     for x in range(start, end)]
         for start_ in range(0, end - start - 5):
             result = sum(diagonal[start_:start_ + 6])
-            if result == 5:
+            if result == 6:
                 return 1
-            if result == -5:
+            if result == -6:
                 return -1
 
         return 0
