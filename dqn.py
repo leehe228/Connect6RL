@@ -7,8 +7,12 @@ import tensorflow as tf
 from collections import deque
 from env import Connect6EnvAdversarial
 
-state_size = [10, 10]
-action_size = 10 * 10
+import os
+from mcts import Board, mcts_go
+import copy
+
+state_size = [15, 15]
+action_size = 15 * 15
 
 load_model = False
 train_mode = True
@@ -21,7 +25,7 @@ learning_rate = 0.0002
 run_episode = 30000
 test_episode = 100
 
-max_step = 101
+max_step = 226
 
 start_train_episode = 1000
 
@@ -32,9 +36,9 @@ save_interval = 500
 epsilon_init = 0.95
 epsilon_min = 0.05
 
-date_time = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
+date_time = datetime.datetime.now().strftime("%d-%H-%M")
 
-save_path = "./saved_models/"+ date_time + "_DQN"
+save_path = "./saved_models/"+ date_time + "_DQN_MCTS"
 load_path = "./saved_models/"
 
 class Model():
@@ -86,10 +90,29 @@ class DQNAgent():
         if load_model == True:
             self.Saver.restore(self.sess, load_path)
 
+        self.init_mcts()
+
+    def init_mcts(self):
+        self.game = Board(state_size[0])
+
+    def reset_mcts(self):
+        self.game = Board(state_size[0])
+
+    def set_mcts(self, action, turn):
+        turn = -1 if turn == 0 else 1
+        self.game.move(row=action // state_size[0], col=action % state_size[0], piece=turn)
+
+    def print_mcts(self):
+        print(self.game)
+
     def get_action(self, state, turn : int):
         if self.epsilon > np.random.rand():
-            random_action = np.random.randint(0, action_size)
-            return random_action
+            # random_action = np.random.randint(0, action_size)
+            # return random_action
+            turn = -1 if turn == 0 else 1
+            move = mcts_go(current_game=copy.deepcopy(self.game), team=turn, stats=True)
+            action = move[0] * state_size[0] + move[1]
+            return action
         else:
             if turn == 0:
                 predict1 = self.sess.run(self.model1.predict, feed_dict={self.model1.input: [[state]]})
@@ -110,7 +133,7 @@ class DQNAgent():
     def train_model(self, model, target_model, memory, done):
         if done:
             if self.epsilon > epsilon_min:
-                self.epsilon -= 0.5 / (run_episode - start_train_episode)
+                self.epsilon -= (0.5 / (run_episode - start_train_episode)) * 15
 
         mini_batch = random.sample(memory, batch_size)
 
@@ -180,6 +203,18 @@ class DQNAgent():
                                                 self.summary_reward2: reward2}), episode)
 
 
+def printBoard(state):
+    print('-' * 38)
+    for i in range(state_size[0]):
+        for j in range(state_size[1]):
+            if state[i, j] == 1.0:
+                print("● ", end='')
+            elif state[i, j] == -1.0:
+                print("○ ", end='')
+            else: print("  ", end='')
+        print()
+    print('-' * 38)
+
 if __name__ == '__main__':
 
     env = Connect6EnvAdversarial()
@@ -195,12 +230,16 @@ if __name__ == '__main__':
             train_mode = False
         
         init_state = env.reset()
+        agent.reset_mcts()
         states = {0 : init_state, 1 : init_state}
         dones = {0 : False, 1 : False}
 
         episode_rewards = {0 : 0.0, 1 : 0.0}
 
         first_turn = True
+
+        agent.set_mcts(action=7*15+7, turn=1)
+        env.seton(action=7*15+7, turn=1)
         
         for step in range(0, max_step * 2):
 
@@ -218,6 +257,13 @@ if __name__ == '__main__':
 
                     # print(next_state, reward, done, info)
 
+                    if turn == 0:
+                        os.system('clear')
+                        agent.print_mcts()
+                        print("-" * 20)
+                        printBoard(next_state)
+                        print(f"epsidoe: {episode} / step : {step}\nact: ({action//19}, {action%19})\nreward: {round(reward, 4)}\ncum reward : {round(episode_rewards[0], 4)}:{round(episode_rewards[1], 4)} \ndone: {done} / info: {info}")
+
                     episode_rewards[turn] += reward
                     dones[turn] = done
 
@@ -227,9 +273,10 @@ if __name__ == '__main__':
                     else:
                         agent.epsilon = 0.0
 
-                    if info['pass'] or done: break
-
-                # 상태 정보 업데이트 
+                    if info['pass'] or done: 
+                        agent.set_mcts(action=action, turn=turn)
+                        break
+ 
                 states[turn] = next_state
 
                 if episode > start_train_episode and train_mode:
@@ -277,7 +324,7 @@ if __name__ == '__main__':
             rewards = {0 : [], 1 : []}
             losses = {0 : [], 1 : []}
 
-        # 네트워크 모델 저장 
+        # ?\84\A4?\8A\B8?\9B\8C?\81\AC 紐⑤뜽 ????\9E\A5 
         if episode % save_interval == 0 and episode != 0:
             agent.save_model()
             print("Save Model {}".format(episode))

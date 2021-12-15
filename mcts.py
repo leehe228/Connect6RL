@@ -2,11 +2,10 @@
 import sys
 import copy
 import random
-from board import Board
-from node import Node
 import math
 import copy
 
+state_size = 15
 
 MCTS_ITERATIONS = 1000
 
@@ -50,7 +49,7 @@ def mcts_go(current_game, team, iterations=MCTS_ITERATIONS, stats=False):
 
         board_updates = 0
         for move in current_node.moves_to:
-            current_game.move(move[0], move[1])
+            current_game.move(move[0], move[1], team)
             board_updates += 1
 
         #quickly check if the game if is in a terminal state
@@ -74,7 +73,7 @@ def mcts_go(current_game, team, iterations=MCTS_ITERATIONS, stats=False):
                 current_node = current_node.children[0]
                 #update board again
                 board_updates += 1
-                current_game.move(current_node.moves_to[-1][0], current_node.moves_to[-1][1])
+                current_game.move(current_node.moves_to[-1][0], current_node.moves_to[-1][1], team)
                 #rollout
                 rollout_res = rollout(copy.deepcopy(current_game), team)
 
@@ -109,14 +108,10 @@ def rollout(game, team):
             row = random.randint(0, game.size - 1)
             col = random.randint(0, game.size - 1)
             if (row, col) not in game.move_history:
-                game.move(row, col)
+                game.move(row, col, team)
                 break
     return 0.5 #draw
 
-if __name__ == '__main__':
-    start_game()
-
-"Board file"
 
 class Board:
     "Board"
@@ -126,7 +121,7 @@ class Board:
         self.moves = 0
         self.__board = [[0 for _ in range(size)] for _ in range(size)]
 
-    def move(self, row, col, piece=None):
+    def move(self, row, col, piece):
         "Place a piece (-1) piece should take the first turn"
         if not piece:
             piece = (self.moves % 2) * 2 - 1
@@ -135,9 +130,9 @@ class Board:
             self.__board[row][col] = piece
             self.moves += 1
         elif piece != 1 and piece != -1:
-            raise TypeError("The piece should be an integer of 0 or 1.")
+            print("The piece should be an integer of 0 or 1.")
         else:
-            raise LookupError("The coordinates on the board are already taken.")
+            print("The coordinates on the board are already taken.")
 
     def undo(self):
         "remove the last placed piece"
@@ -158,36 +153,36 @@ class Board:
             return 0
         latest_move = self.move_history[-1]
         #check horizontal area of last placed piece
-        start = latest_move[1] - 5
+        start = latest_move[1] - 4
         if start < 0:
             start = 0
         diag_start_col = start #because we can
-        end = latest_move[1] + 6
+        end = latest_move[1] + 5
         if end > self.size:
             end = self.size
         diag_end_col = end #because we can
-        for start_ in range(0, end - 5):
-            result = sum(self.__board[latest_move[0]][start + start_:start + start_ + 6])
-            if result == 6:
+        for start_ in range(0, end - 4):
+            result = sum(self.__board[latest_move[0]][start + start_:start + start_ + 5])
+            if result == 5:
                 return 1
-            if result == -6:
+            if result == -5:
                 return -1
 
         #check the vertical area of the last placed piece
-        start = latest_move[0] - 5
+        start = latest_move[0] - 4
         if start < 0:
             start = 0
         diag_start_row = start #because we can
-        end = latest_move[0] + 6
+        end = latest_move[0] + 5
         if end > self.size:
             end = self.size
         diag_end_row = end #because we can
         vertical = [self.__board[x][latest_move[1]] for x in range(start, end)]
-        for start_ in range(0, end - start - 5):
-            result = sum(vertical[start_:start_ + 6])
-            if result == 6:
+        for start_ in range(0, end - start - 4):
+            result = sum(vertical[start_:start_ + 5])
+            if result == 5:
                 return 1
-            if result == -6:
+            if result == -5:
                 return -1
 
         #check the top left - bottom right diagonal
@@ -195,11 +190,11 @@ class Board:
         end = min((diag_end_row - latest_move[0], diag_end_col - latest_move[1]))
         diagonal = [self.__board[latest_move[0] + x][latest_move[1] + x]
                     for x in range(start, end)] #tuples perform better than lists
-        for start_ in range(0, end - start - 5):
-            result = sum(diagonal[start_:start_ + 6])
-            if result == 6:
+        for start_ in range(0, end - start - 4):
+            result = sum(diagonal[start_:start_ + 5])
+            if result == 5:
                 return 1
-            if result == -6:
+            if result == -5:
                 return -1
 
         #check bottom left - top right diagonal
@@ -207,11 +202,11 @@ class Board:
         end = min((diag_end_col - latest_move[1], latest_move[0] - diag_start_row + 1))
         diagonal = [self.__board[latest_move[0] - x][latest_move[1] + x]
                     for x in range(start, end)]
-        for start_ in range(0, end - start - 5):
-            result = sum(diagonal[start_:start_ + 6])
-            if result == 6:
+        for start_ in range(0, end - start - 4):
+            result = sum(diagonal[start_:start_ + 5])
+            if result == 5:
                 return 1
-            if result == -6:
+            if result == -5:
                 return -1
 
         return 0
@@ -239,7 +234,6 @@ class Board:
 
     
 class Node:
-    "Node"
     def __init__(self, parent=None, move_to=None):
         self.parent = parent #the object
         if parent and not move_to:
@@ -254,11 +248,9 @@ class Node:
         self.children = []
 
     def is_leaf(self):
-        "Returns a boolean variable on whether the node is a leaf node"
         return not bool(self.children)
 
     def ucb1(self):
-        "Returns UCB1 score"
         try:
             return self.score / self.visits + 2 * math.sqrt(math.log(self.parent.visits)
                                                             / self.visits)
